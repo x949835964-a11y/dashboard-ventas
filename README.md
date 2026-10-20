@@ -4,7 +4,8 @@ Dashboard de ventas interactivo y responsivo para una tienda en línea (ficticia
 
 🔗 **Demo en vivo:** https://x949835964-a11y.github.io/dashboard-ventas/
 
-![Vista del dashboard](captura.png)
+<img width="1917" height="954" alt="image" src="https://github.com/user-attachments/assets/400c772e-6510-4d23-ae22-37181d0d65e3" />
+
 
 > Los datos son de ejemplo: se generan en el navegador con una semilla fija, así que siempre se ven igual y no se necesita backend.
 
