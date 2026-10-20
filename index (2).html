@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="Dashboard de ventas interactivo con Chart.js: KPIs, filtros por fecha, gráficos y exportación a CSV.">
+  <title>Ventas Mercado Andino</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <div class="brand-row">
+      <div class="brand">
+        <div class="logo" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M3 19 9 9l4 6 3-4 5 8H3Z" fill="#fff"/><circle cx="17" cy="6" r="2.2" fill="#fff" opacity=".75"/></svg>
+        </div>
+        <div>
+          <h1>Ventas · Mercado Andino</h1>
+          <p>Tienda en línea · Lima, Perú · montos en soles (PEN)</p>
+        </div>
+      </div>
+      <span class="sample" title="Las cifras son generadas para demostración">Datos de ejemplo</span>
+    </div>
+
+    <div class="controls">
+      <div class="seg" role="group" aria-label="Rango de fechas">
+        <button type="button" data-range="today">Hoy</button>
+        <button type="button" data-range="7d" aria-pressed="true">Últimos 7 días</button>
+        <button type="button" data-range="month">Este mes</button>
+        <button type="button" data-range="custom">Personalizado</button>
+      </div>
+      <div class="custom" id="customBox" hidden>
+        <label for="dFrom">Desde<input type="date" id="dFrom"></label>
+        <label for="dTo">Hasta<input type="date" id="dTo"></label>
+        <span class="err" id="dErr" hidden></span>
+      </div>
+    </div>
+    <div class="range-note" id="rangeNote"></div>
+  </div>
+</header>
+
+<main class="wrap">
+  <article class="card kpi">
+    <div class="kpi-label"><i style="background:var(--c1)"></i>Ventas totales</div>
+    <div class="kpi-value" id="kSales">—</div>
+    <div class="kpi-foot"><span class="delta" id="dSales"></span><span>vs. periodo anterior</span></div>
+  </article>
+  <article class="card kpi">
+    <div class="kpi-label"><i style="background:var(--c2)"></i>Pedidos</div>
+    <div class="kpi-value" id="kOrders">—</div>
+    <div class="kpi-foot"><span class="delta" id="dOrders"></span><span>vs. periodo anterior</span></div>
+  </article>
+  <article class="card kpi">
+    <div class="kpi-label"><i style="background:var(--c3)"></i>Ticket promedio</div>
+    <div class="kpi-value" id="kTicket">—</div>
+    <div class="kpi-foot"><span class="delta" id="dTicket"></span><span>vs. periodo anterior</span></div>
+  </article>
+  <article class="card kpi">
+    <div class="kpi-label"><i style="background:var(--c5)"></i>Tasa de conversión</div>
+    <div class="kpi-value" id="kConv">—</div>
+    <div class="kpi-foot"><span class="delta" id="dConv"></span><span id="convSub">pedidos / sesiones</span></div>
+  </article>
+
+  <section class="card trend" aria-labelledby="hTrend">
+    <div class="card-h">
+      <div>
+        <h2 id="hTrend">Tendencia de ventas</h2>
+        <p id="trendSub">Ventas por día</p>
+      </div>
+      <div class="legend-inline" aria-hidden="true">
+        <span><i class="sw"></i>Periodo actual</span>
+        <span><i class="sw dash"></i>Periodo anterior</span>
+      </div>
+    </div>
+    <div class="chart-box"><canvas id="cTrend" aria-label="Gráfico de tendencia de ventas" role="img"></canvas></div>
+  </section>
+
+  <section class="card cats" aria-labelledby="hCats">
+    <div class="card-h">
+      <div>
+        <h2 id="hCats">Ventas por categoría</h2>
+        <p>Participación sobre el total del periodo</p>
+      </div>
+    </div>
+    <div class="donut-box">
+      <canvas id="cCats" aria-label="Distribución de ventas por categoría" role="img"></canvas>
+      <div class="donut-center"><small>Total</small><strong id="donutTotal">—</strong></div>
+    </div>
+    <ul class="cat-list" id="catList"></ul>
+  </section>
+
+  <section class="card top5" aria-labelledby="hTop">
+    <div class="card-h">
+      <div>
+        <h2 id="hTop">Productos más vendidos</h2>
+        <p>Top 7 por ingresos en el periodo</p>
+      </div>
+    </div>
+    <div class="bar-box"><canvas id="cTop" aria-label="Productos más vendidos" role="img"></canvas></div>
+  </section>
+
+  <section class="card tx" aria-labelledby="hTx">
+    <div class="card-h">
+      <div>
+        <h2 id="hTx">Transacciones recientes</h2>
+        <p id="txSub">—</p>
+      </div>
+      <div class="tools">
+        <input type="search" id="q" class="search" placeholder="Buscar pedido, cliente o producto" aria-label="Buscar transacciones">
+        <button type="button" class="btn" id="btnCsv">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0-4.5-4.5M12 15l4.5-4.5M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+          Exportar a CSV
+        </button>
+      </div>
+    </div>
+    <div class="table-scroll" id="tableScroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Pedido</th>
+            <th><button type="button" data-sort="ts" data-active="true">Fecha <span class="arr" id="arr-ts">↓</span></button></th>
+            <th>Cliente</th>
+            <th>Producto</th>
+            <th>Pago</th>
+            <th>Estado</th>
+            <th class="r"><button type="button" data-sort="total">Total <span class="arr" id="arr-total">↕</span></button></th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+    <div class="pager">
+      <span id="pageInfo">—</span>
+      <div class="btns">
+        <button type="button" id="prev">Anterior</button>
+        <span id="pageNum" class="num"></span>
+        <button type="button" id="next">Siguiente</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
